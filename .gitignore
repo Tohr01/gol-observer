@@ -1,0 +1,11 @@
+.idea
+.vscode
+prototype.xd
+
+# Frontend
+frontend/node_modules
+
+# Backend
+server/*.py
+server/*.log
+server/log_files.json

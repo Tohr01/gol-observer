@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    @font-face {
+        font-family: 'Rubik-Medium';
+        font-weight: 400;
+        src: url(/fonts/Rubik-Medium.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: 'Rubik-Semibold';
+        font-weight: 400;
+        src: url(/fonts/Rubik-SemiBold.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: 'Rubik-Bold';
+        font-weight: 400;
+        src: url(/fonts/Rubik-Bold.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: 'Rubik-Regular';
+        font-weight: 400;
+        src: url(/fonts/Rubik-Regular.woff2) format('woff2');
+    }
+}
+
+@layer components {
+    .sidebar-button {
+        @apply flex w-full hover:shadow-md mb-4 px-4 py-2 rounded-lg hover:bg-gray-200
+    }
+    .sidebar-button-active {
+        @apply flex w-full bg-buttonBlue text-white px-4 py-2 rounded-lg shadow-md hover:bg-buttonBlue
+    }
+    .sidebar-button p:first-of-type {
+        @apply font-rubikMedium text-3xl opacity-50 pr-2
+    }
+    .sidebar-button p:nth-child(2) {
+        @apply font-rubikMedium text-xl my-auto
+    }
+    
+    #logContainer p {
+        @apply text-2xl font-rubikMedium py-2 px-5 mt-2 rounded-lg
+    }
+
+    #logContainer p:nth-child(2n) {
+        @apply bg-gray-200 bg-opacity-40 
+    }
+}

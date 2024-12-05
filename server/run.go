@@ -67,7 +67,7 @@ func main() {
 
 	handler = c.Handler(handler)
 
-	err := http.ListenAndServe(":8080", handler)
+	err := http.ListenAndServe(":6666", handler)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
