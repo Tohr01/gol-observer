@@ -1,15 +1,13 @@
 [Unit]
-Description=Gol Observer API (including workers, rest and ws endpoints)
+Description=Gol Observer Service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/gol-observer    # Path to your Go binary
+Type=simple
+User=carl
+WorkingDirectory=/home/carl
+ExecStart=/usr/local/bin/gol-observer
 Restart=on-failure
-User=carl                              # User to run the service
-Group=carl                             # Group to run the service
-WorkingDirectory=/home/carl            # Directory where your log_files.json is located
-StandardOutput=journal                 # Output logs to systemd journal
-StandardError=journal                  # Error logs sent to systemd journal
 
 [Install]
 WantedBy=multi-user.target
