@@ -32,7 +32,13 @@ var logFilesJson []byte
 var mux *http.ServeMux
 
 func main() {
-	jsonFile, openErr := os.Open("./log_files.json")
+	args := os.Args[1:]
+	if len(args) == 0 {
+		panic("Missing log files json path")
+	}
+	logFilesPath := args[0]
+	log.Println("Loading log files config from " + logFilesPath)
+	jsonFile, openErr := os.Open(logFilesPath)
 	if openErr != nil {
 		panic(openErr)
 	}
@@ -48,8 +54,11 @@ func main() {
 		panic(unmarshalErr)
 	}
 
+	log.Println("Creating new http serve mux")
 	mux = http.NewServeMux()
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	log.Println("Setting up websocket endpoints")
 	setupWebsockets()
 
 	logFilesMap := make(map[string]string)
@@ -62,12 +71,16 @@ func main() {
 
 	handler := cors.Default().Handler(mux)
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://127.0.0.1:5500"},
+		AllowedOrigins: []string{
+			"http://127.0.0.1:5500",
+			"https://logs.cr.codes",
+		},
 	})
 
 	handler = c.Handler(handler)
 
-	err := http.ListenAndServe(":6666", handler)
+	log.Println("Listening on 127.0.0.1:8888")
+	err := http.ListenAndServe(":8888", handler)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -110,6 +123,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request, logFile *LogFile)
 	}
 	defer ws.Close()
 
+	log.Println("New client connected to " + logFile.LogEndpoint)
 	logFile.Clients[ws] = true
 	defer delete(logFile.Clients, ws)
 
@@ -131,6 +145,7 @@ func handleSendWsMessages(logFile *LogFile) {
 					log.Println("Could not close client:", err)
 					return
 				}
+				log.Println("Closing ws connection to client for log file" + logFile.LogName)
 				delete(logFile.Clients, client)
 			}
 		}
@@ -138,6 +153,7 @@ func handleSendWsMessages(logFile *LogFile) {
 }
 
 func tailWatch(logFile *LogFile) {
+	log.Println("Starting tail -f for log file at path " + logFile.LogPath)
 	cmd := exec.Command("tail", "-f", logFile.LogPath)
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {

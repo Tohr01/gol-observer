@@ -1,4 +1,4 @@
-const BASE_URL = "127.0.0.1:6666"
+const BASE_URL = "127.0.0.1:8888"
 
 var activeID;
 var ws;
