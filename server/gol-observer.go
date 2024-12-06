@@ -11,17 +11,18 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
 type LogFiles struct {
-	Logs []LogFile `json:"logFiles"`
+	Logs []LogFile
 }
 
 type LogFile struct {
-	LogName     string `json:"logName"`
-	LogPath     string `json:"logPath"`
-	LogEndpoint string `json:"logEndpoint"`
+	LogName     string
+	LogPath     string
+	LogEndpoint string
 	LogChannel  chan string
 	Clients     map[*websocket.Conn]bool
 }
@@ -44,9 +45,33 @@ func main() {
 		panic(readErr)
 	}
 
-	unmarshalErr := json.Unmarshal(byteValue, &logFiles)
+	type LogFilesGlobs struct {
+		Globs []string `json:"logFilesGlob"`
+	}
+	var logFilesGlobs LogFilesGlobs
+
+	unmarshalErr := json.Unmarshal(byteValue, &logFilesGlobs)
 	if unmarshalErr != nil {
 		panic(unmarshalErr)
+	}
+
+	logFilesGlobs.Globs = removeDuplicateStr(logFilesGlobs.Globs)
+
+	for _, logGlob := range logFilesGlobs.Globs {
+		files, err := filepath.Glob(logGlob)
+		if err != nil {
+			log.Printf("Skipping %s\n", logGlob)
+			continue
+		}
+		for _, path := range files {
+			filebase := filepath.Base(path)
+			suffix := filepath.Ext(path)
+			filebase = strings.TrimSuffix(filebase, suffix)
+			logFiles.Logs = append(logFiles.Logs, LogFile{
+				LogName: filebase,
+				LogPath: path,
+			})
+		}
 	}
 
 	log.Println("Creating new http serve mux")
@@ -165,4 +190,18 @@ func tailWatch(logFile *LogFile) {
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+// https://stackoverflow.com/questions/66643946/how-to-remove-duplicates-strings-or-int-from-slice-in-go
+func removeDuplicateStr(strSlice []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range strSlice {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
