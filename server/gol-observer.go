@@ -68,7 +68,7 @@ func main() {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
 			"http://127.0.0.1:5500",
-			"https://logs.cr.codes",
+			"https://api.pixeldogs.de",
 		},
 	})
 
