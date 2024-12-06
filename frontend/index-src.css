@@ -36,7 +36,7 @@
         @apply font-rubikMedium text-3xl opacity-50 pr-2 my-auto
     }
     .sidebar-button p:nth-child(2) {
-        @apply font-rubikMedium text-xl my-auto break-all text-left
+        @apply font-rubikMedium text-xl my-auto text-left break-words
     }
     
     #logContainer p {
