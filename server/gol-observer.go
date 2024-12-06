@@ -32,13 +32,8 @@ var logFilesJson []byte
 var mux *http.ServeMux
 
 func main() {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		panic("Missing log files json path")
-	}
-	logFilesPath := args[0]
-	log.Println("Loading log files config from " + logFilesPath)
-	jsonFile, openErr := os.Open(logFilesPath)
+	log.Println("Loading log files config")
+	jsonFile, openErr := os.Open("./log_files.json")
 	if openErr != nil {
 		panic(openErr)
 	}
