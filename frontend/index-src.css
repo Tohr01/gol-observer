@@ -33,10 +33,10 @@
         @apply flex w-full bg-buttonBlue text-white px-4 py-2 rounded-lg shadow-md hover:bg-buttonBlue
     }
     .sidebar-button p:first-of-type {
-        @apply font-rubikMedium text-3xl opacity-50 pr-2
+        @apply font-rubikMedium text-3xl opacity-50 pr-2 my-auto
     }
     .sidebar-button p:nth-child(2) {
-        @apply font-rubikMedium text-xl my-auto
+        @apply font-rubikMedium text-xl my-auto break-all text-left
     }
     
     #logContainer p {
