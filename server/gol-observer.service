@@ -8,8 +8,8 @@ Restart=on-failure
 User=carl                              # User to run the service
 Group=carl                             # Group to run the service
 WorkingDirectory=/home/carl            # Directory where your log_files.json is located
-StandardOutput=syslog                  # Output logs to syslog
-StandardError=syslog                   # Error logs sent to syslog
+StandardOutput=journal                 # Output logs to systemd journal
+StandardError=journal                  # Error logs sent to systemd journal
 
 [Install]
 WantedBy=multi-user.target
