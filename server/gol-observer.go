@@ -25,6 +25,7 @@ type LogFile struct {
 	LogEndpoint string
 	LogChannel  chan string
 	Clients     map[*websocket.Conn]bool
+	LastLines   []string
 }
 
 var upgrader = websocket.Upgrader{}
@@ -147,6 +148,14 @@ func handleConnections(w http.ResponseWriter, r *http.Request, logFile *LogFile)
 	logFile.Clients[ws] = true
 	defer delete(logFile.Clients, ws)
 
+	for _, line := range logFile.LastLines {
+		err := ws.WriteMessage(websocket.TextMessage, []byte(line))
+		if err != nil {
+			log.Println("Error writing to client:", err)
+			break
+		}
+	}
+
 	for {
 		if _, _, err := ws.ReadMessage(); err != nil {
 			break
@@ -173,6 +182,7 @@ func handleSendWsMessages(logFile *LogFile) {
 }
 
 func tailWatch(logFile *LogFile) {
+	const N = 20
 	log.Println("Starting tail -f for log file at path " + logFile.LogPath)
 	cmd := exec.Command("tail", "-f", logFile.LogPath)
 	cmdReader, err := cmd.StdoutPipe()
@@ -185,7 +195,15 @@ func tailWatch(logFile *LogFile) {
 	scanner := bufio.NewScanner(cmdReader)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if line == "" {
+			continue
+		}
 		logFile.LogChannel <- line
+
+		if len(logFile.LastLines) >= N {
+			logFile.LastLines = logFile.LastLines[1:]
+		}
+		logFile.LastLines = append(logFile.LastLines, line)
 	}
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
@@ -196,7 +214,7 @@ func tailWatch(logFile *LogFile) {
 // https://stackoverflow.com/questions/66643946/how-to-remove-duplicates-strings-or-int-from-slice-in-go
 func removeDuplicateStr(strSlice []string) []string {
 	allKeys := make(map[string]bool)
-	list := []string{}
+	var list []string
 	for _, item := range strSlice {
 		if _, value := allKeys[item]; !value {
 			allKeys[item] = true
