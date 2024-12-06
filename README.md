@@ -22,6 +22,8 @@ You can deploy the frontend to your to your favorite online hosted webspace or e
 
 Just make sure to copy these files:
 
+- fonts (directory)
+
 - index.html
 
 - index-dist.css
@@ -54,8 +56,10 @@ err := http.ListenAndServe(":8888", handler)
 
 - `cd server`
 
-- `GOBIN=/usr/local/bin sudo go install gol-observer` compiles and installs the server in the path /usr/local/bin
+- `go build` (On my Rasperry pi 4 I had to do `env GOOS=linux GOARCH=arm64 go build gol-observer.go`)
+
+- `sudo cp -p gol-observer /usr/local/bin/`
 
 - On Linux copy service file to `/etc/systemd/system/`
-
-- Start the service `systemctl start gol-observer`
+- Reload daemons `sudo systemctl daemon-reload`
+- Start the service `sudo systemctl start gol-observer`
