@@ -183,8 +183,8 @@ func handleSendWsMessages(logFile *LogFile) {
 
 func tailWatch(logFile *LogFile) {
 	const N = 20
-	log.Println("Starting tail -f for log file at path " + logFile.LogPath)
-	cmd := exec.Command("tail", "-f", logFile.LogPath)
+	log.Println("Starting tail -F for log file at path " + logFile.LogPath)
+	cmd := exec.Command("tail", "-F", logFile.LogPath)
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
