@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"io"
@@ -28,37 +27,44 @@ type LogFile struct {
 	LastLines   []string
 }
 
+type Config struct {
+	Server struct {
+		Host           string `json:"host"`
+		Port           string `json:"port"`
+		ExternalApiUrl string `json:"external_api_url"`
+		ApiKey         string `json:"api_key"`
+	}
+	LogFilesGlob []string `json:"log_files_glob"`
+}
+
 var upgrader = websocket.Upgrader{}
 var logFiles LogFiles
 var logFilesJson []byte
 var mux *http.ServeMux
+var config Config
 
 func main() {
-	log.Println("Loading log files config")
-	jsonFile, openErr := os.Open("./log_files.json")
-	if openErr != nil {
-		panic(openErr)
+	// Load config
+	log.Println("Loading config")
+	configFile, configOpenErr := os.Open("./config.json")
+	if configOpenErr != nil {
+		panic(configOpenErr)
 	}
-	defer jsonFile.Close()
+	defer configFile.Close()
 
-	byteValue, readErr := io.ReadAll(jsonFile)
+	jsonByteValue, readErr := io.ReadAll(configFile)
 	if readErr != nil {
 		panic(readErr)
 	}
 
-	type LogFilesGlobs struct {
-		Globs []string `json:"logFilesGlob"`
-	}
-	var logFilesGlobs LogFilesGlobs
-
-	unmarshalErr := json.Unmarshal(byteValue, &logFilesGlobs)
-	if unmarshalErr != nil {
-		panic(unmarshalErr)
+	configUnmarshErr := json.Unmarshal(jsonByteValue, &config)
+	if configUnmarshErr != nil {
+		panic(configUnmarshErr)
 	}
 
-	logFilesGlobs.Globs = removeDuplicateStr(logFilesGlobs.Globs)
+	config.LogFilesGlob = removeDuplicateStr(config.LogFilesGlob)
 
-	for _, logGlob := range logFilesGlobs.Globs {
+	for _, logGlob := range config.LogFilesGlob {
 		files, err := filepath.Glob(logGlob)
 		if err != nil {
 			log.Printf("Skipping %s\n", logGlob)
@@ -93,26 +99,31 @@ func main() {
 	handler := cors.Default().Handler(mux)
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			"http://127.0.0.1:5500",
-			"https://api.pixeldogs.de",
+			"http://127.0.0.1:5500", // Web development live server
+			config.Server.ExternalApiUrl,
 		},
 	})
 
 	handler = c.Handler(handler)
 
-	log.Println("Listening on 127.0.0.1:8888")
-	err := http.ListenAndServe(":8888", handler)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+	log.Printf("Listening on %s:%s\n", config.Server.Host, config.Server.Port)
+	serverErr := http.ListenAndServe(config.Server.Host+":"+config.Server.Port, handler)
+	if serverErr != nil {
+		log.Fatal("ListenAndServe: ", serverErr)
 	}
 }
 
 func handleAvailableLogs(w http.ResponseWriter, r *http.Request) {
+	apiKey := r.URL.Query().Get("api_key")
+	if apiKey != config.Server.ApiKey {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write(logFilesJson)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 }
@@ -137,9 +148,15 @@ func setupWebsockets() {
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request, logFile *LogFile) {
+	apiKey := r.URL.Query().Get("api_key")
+	if apiKey != config.Server.ApiKey {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	defer ws.Close()

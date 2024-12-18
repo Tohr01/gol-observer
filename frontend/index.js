@@ -1,15 +1,17 @@
-const BASE_URL = "127.0.0.1:8888"
+const BASE_URL = "127.0.0.1:8888";//external-api-url-here.com
+const API_KEY = "your-api-key-here";
 
-var activeID;
-var ws;
-var logFiles;
-var logContainer;
+let activeID;
+let ws;
+let logContainer;
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById("sidebar");
     logContainer = document.getElementById("logContainer");
     fetchLogFiles().then(logFiles => {
         this.logFiles = logFiles;
-        if (Object.keys(logFiles).length == 0) { return }
+        if (Object.keys(logFiles).length == 0) {
+            return
+        }
         for (const wsurl in logFiles) {
             sidebar.appendChild(getNewButtonNode(logFiles[wsurl], wsurl))
         }
@@ -22,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchLogFiles() {
     try {
-        const logFiles = await fetch("http://" + BASE_URL + "/available-logs");
-        const logFilesJson = await logFiles.json();
-        return logFilesJson;
+        const logFiles = await fetch("https://" + BASE_URL + "/available-logs?api_key=" + API_KEY);
+        return await logFiles.json();
     } catch (error) {
         console.error('Error with async/await:', error);
     }
@@ -53,7 +54,6 @@ function getNewButtonNode(name, wsurl) {
 function listenToLogFile(element) {
     const wsurl = element.id;
     if (ws !== undefined) {
-        console.log(ws);
         ws.close();
     }
     clearLogContainer();
@@ -61,7 +61,7 @@ function listenToLogFile(element) {
     oldActiveButton.classList.remove("sidebar-button-active");
     element.classList.add("sidebar-button-active");
     activeID = wsurl;
-    ws = new WebSocket("ws://" + BASE_URL + "/ws/" + wsurl);
+    ws = new WebSocket("ws://" + BASE_URL + "/ws/" + wsurl + "?api_key=" + API_KEY);
     ws.addEventListener("message", (event) => {
         const newP = document.createElement("p");
         newP.innerHTML = event.data;
