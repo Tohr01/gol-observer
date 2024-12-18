@@ -61,7 +61,7 @@ function listenToLogFile(element) {
     oldActiveButton.classList.remove("sidebar-button-active");
     element.classList.add("sidebar-button-active");
     activeID = wsurl;
-    ws = new WebSocket("ws://" + BASE_URL + "/ws/" + wsurl + "?api_key=" + API_KEY);
+    ws = new WebSocket("wss://" + BASE_URL + "/ws/" + wsurl + "?api_key=" + API_KEY);
     ws.addEventListener("message", (event) => {
         const newP = document.createElement("p");
         newP.innerHTML = event.data;
