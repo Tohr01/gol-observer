@@ -1,0 +1,11 @@
+{
+  "server" : {
+    "host": "127.0.0.1",
+    "port": "8888",
+    "external_api_url": "https://your_url_here.com",
+    "api_key": "your-api-key-here"
+  },
+  "log_files_glob": [
+      "/path/to/sample/*.log"
+  ]
+}
