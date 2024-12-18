@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=carl
-WorkingDirectory=/home/carl
+WorkingDirectory=/path/to/your/wd
 ExecStart=/usr/local/bin/gol-observer
 Restart=on-failure
 
