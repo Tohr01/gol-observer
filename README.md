@@ -3,7 +3,7 @@
 Gol Observer is a little tool I use to monitor my log files remotely using a stupidly reduced web user interface.<br>
 I basically works by `tail -F`ing the given log files and sending them to the client via websockets.
 <br><br>**Why is it called *Gol*?**<br>
-Because its partly writter in Go and spells *log* backwards :D
+Because its partly written in Go and spells *log* backwards :D
 ## Installation instructions
 
 - Clone this repo
